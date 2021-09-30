@@ -1,0 +1,21 @@
+language: generic
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gmurop/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true USERNAME/react-test npm test
+
+after_success:
+  - docker build -t gmurop/multi-client ./client
+  - docker build -t gmurop/multi-nginx ./nginx
+  - docker build -t gmurop/multi-server ./server
+  - docker build -t gmurop/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push gmurop/multi-client
+  - docker push gmurop/multi-nginx
+  - docker push gmurop/multi-server
+  - docker push gmurop/multi-worker
